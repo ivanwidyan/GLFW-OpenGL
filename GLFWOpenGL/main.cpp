@@ -6,6 +6,11 @@
 #include <GLFW/glfw3.h>
 // SOIL2
 #include "SOIL2/SOIL2.h"
+// GLM
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 // Other includes
 #include "Shader.h"
 
@@ -104,7 +109,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	unsigned char *image = SOIL_load_image("res/images/image3.png", &width, &height, 0, SOIL_LOAD_RGBA);
+	unsigned char *image = SOIL_load_image("res/images/image2.png", &width, &height, 0, SOIL_LOAD_RGBA);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
@@ -122,6 +127,13 @@ int main() {
 		// Draw the triangle
 		ourShader.Use();
 
+		glm::mat4 transform;
+		transform = glm::translate(transform, glm::vec3(0.f, 0.f, 0.0f));
+		transform = glm::rotate(transform, (GLfloat)glfwGetTime() * -5.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		GLint transformLocation = glGetUniformLocation(ourShader.Program, "transform");
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture"), 0);
@@ -134,6 +146,7 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 
+	// Properly de-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
