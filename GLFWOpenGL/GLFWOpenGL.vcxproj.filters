@@ -108,10 +108,10 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\core.frag">
+    <None Include="res\shaders\core.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="res\shaders\core.vs">
+    <None Include="res\shaders\core.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
