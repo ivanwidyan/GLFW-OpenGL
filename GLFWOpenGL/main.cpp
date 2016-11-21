@@ -6,6 +6,10 @@
 #include <GLFW/glfw3.h>
 // SOIL
 #include "SOIL2/SOIL2.h"
+// GLM Mathematics
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 // Other includes
 #include "Shader.h"
 // Function prototypes
@@ -44,7 +48,7 @@ int main()
 	// Set up vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] = {
 		// Positions         // Colors			 // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,	 1.0f, 1.0f, // Top Right
 		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
 		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
@@ -130,9 +134,6 @@ int main()
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Avtivate shader
-		ourShader.Use();
-
 		// Bind Texture using texture units
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -140,7 +141,19 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
-	
+		
+		// Avtivate shader
+		ourShader.Use();
+
+		// Create Transformations
+		glm::mat4 transform;
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::rotate(transform, (GLfloat)glfwGetTime() * glm::radians(50.f), glm::vec3(0.0f, 0.0f, 1.0f));
+		// Get matrix's uniform location and set matrix
+		GLuint transformLoc = glGetUniformLocation(ourShader.Program, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+
 		// Draw container
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
