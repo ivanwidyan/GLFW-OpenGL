@@ -14,12 +14,17 @@
 #include "Shader.h"
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void do_movement();
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
-// Camera system
+// Camera
 glm::vec3 cameraPos = glm::vec3(0.f, 0.f, 3.f);
 glm::vec3 cameraFront = glm::vec3(0.f, 0.f, -1.f);
 glm::vec3 cameraUp = glm::vec3(0.f, 1.f, 0.f);
+bool keys[1024];
+// Delta time
+GLfloat deltaTime = 0.f; // Time between current frame and last frame
+GLfloat lastFrame = 0.f; // Time of last frame
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -172,8 +177,13 @@ int main()
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+		// Calculate deltatime of current frame
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		// Check and call events
 		glfwPollEvents();
+		do_movement();
 
 		// Render
 		// Clear the colorbuffer
@@ -239,15 +249,26 @@ int main()
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	GLfloat cameraSpeed = 0.05f;
-	if (key == GLFW_KEY_W)
-		cameraPos += cameraSpeed * cameraFront;
-	if (key == GLFW_KEY_S)
-		cameraPos -= cameraSpeed * cameraFront;
-	if (key == GLFW_KEY_A)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (key == GLFW_KEY_D)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key >= 0 && key < 1024) {
+		if (action == GLFW_PRESS)
+			keys[key] = true;
+		else if (action == GLFW_FALSE)
+			keys[key] = false;
+	}
+}
+
+void do_movement()
+{
+	// Camera controls
+	GLfloat cameraSpeed = 5.f * deltaTime;
+	if (keys[GLFW_KEY_W])
+		cameraPos += cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_S])
+		cameraPos -= cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_A])
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keys[GLFW_KEY_D])
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
