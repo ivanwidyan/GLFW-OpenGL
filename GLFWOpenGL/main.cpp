@@ -187,10 +187,15 @@ int main()
 		// Avtivate shader
 		ourShader.Use();
 
-		// Create Transformations
+		// Camera/view transformation
 		glm::mat4 view;
+		GLfloat radius = 10.f;
+		GLfloat camX = sin(glfwGetTime()) * radius;
+		GLfloat camZ = cos(glfwGetTime()) * radius;
+		view = glm::lookAt(glm::vec3(camX, 0.f, camZ), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+
+		// Projections
 		glm::mat4 projection;
-		view = glm::translate(view, glm::vec3(0.f, 0.f, -3.f));
 		projection = glm::perspective(glm::radians(45.f), (float)width / (float)height, 0.1f, 100.f);
 		// Get their uniform location
 		GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
