@@ -16,6 +16,10 @@
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+// Camera system
+glm::vec3 cameraPos = glm::vec3(0.f, 0.f, 3.f);
+glm::vec3 cameraFront = glm::vec3(0.f, 0.f, -1.f);
+glm::vec3 cameraUp = glm::vec3(0.f, 1.f, 0.f);
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -188,11 +192,12 @@ int main()
 		ourShader.Use();
 
 		// Camera/view transformation
+
 		glm::mat4 view;
 		GLfloat radius = 10.f;
 		GLfloat camX = sin(glfwGetTime()) * radius;
 		GLfloat camZ = cos(glfwGetTime()) * radius;
-		view = glm::lookAt(glm::vec3(camX, 0.f, camZ), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		// Projections
 		glm::mat4 projection;
@@ -234,6 +239,15 @@ int main()
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	GLfloat cameraSpeed = 0.05f;
+	if (key == GLFW_KEY_W)
+		cameraPos += cameraSpeed * cameraFront;
+	if (key == GLFW_KEY_S)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (key == GLFW_KEY_A)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (key == GLFW_KEY_D)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
