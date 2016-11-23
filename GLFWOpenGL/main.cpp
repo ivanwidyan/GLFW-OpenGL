@@ -14,6 +14,7 @@
 #include "Shader.h"
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void do_movement();
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -21,11 +22,14 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 glm::vec3 cameraPos = glm::vec3(0.f, 0.f, 3.f);
 glm::vec3 cameraFront = glm::vec3(0.f, 0.f, -1.f);
 glm::vec3 cameraUp = glm::vec3(0.f, 1.f, 0.f);
+GLfloat yaw = -90.f; // Yaw is initialized to -90 degrees since a yaw of 0 results in direction vector position to the right
+GLfloat pitch = 0.f;
+GLfloat lastX = WIDTH / 2;
+GLfloat lastY = HEIGHT / 2;
 bool keys[1024];
 // Delta time
 GLfloat deltaTime = 0.f; // Time between current frame and last frame
 GLfloat lastFrame = 0.f; // Time of last frame
-
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -43,6 +47,10 @@ int main()
 
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+
+	// GLFW Options
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -202,7 +210,6 @@ int main()
 		ourShader.Use();
 
 		// Camera/view transformation
-
 		glm::mat4 view;
 		GLfloat radius = 10.f;
 		GLfloat camX = sin(glfwGetTime()) * radius;
@@ -271,4 +278,38 @@ void do_movement()
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (keys[GLFW_KEY_D])
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+bool firstMouse = true;
+void mouse_callback(GLFWwindow * window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates go from bottom to left
+	lastX = xpos;
+	lastY = ypos;
+
+	GLfloat sensitivity = 0.05;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.f)
+		pitch = 89.f;
+	if (pitch < -89.f)
+		pitch = -89.f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
 }
