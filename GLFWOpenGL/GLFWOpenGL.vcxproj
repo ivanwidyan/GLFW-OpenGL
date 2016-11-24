@@ -152,6 +152,7 @@
     <ClCompile Include="SOIL2\SOIL2.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SOIL2\etc1_utils.h" />
     <ClInclude Include="SOIL2\image_DXT.h" />

@@ -1,37 +1,35 @@
-#include <iostream>
+// Std. Includes
+#include <string>
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
 // GLFW
 #include <GLFW/glfw3.h>
+// GL includes
+#include "Shader.h"
+#include "Camera.h"
 // SOIL
 #include "SOIL2/SOIL2.h"
 // GLM Mathematics
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
-// Other includes
-#include "Shader.h"
+// Properties
+const GLuint ScreenWidth = 800, ScreenHeight = 600;
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void do_movement();
-// Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
 // Camera
-glm::vec3 cameraPos = glm::vec3(0.f, 0.f, 3.f);
-glm::vec3 cameraFront = glm::vec3(0.f, 0.f, -1.f);
-glm::vec3 cameraUp = glm::vec3(0.f, 1.f, 0.f);
-GLfloat yaw = -90.f; // Yaw is initialized to -90 degrees since a yaw of 0 results in direction vector position to the right
-GLfloat pitch = 0.f;
-GLfloat lastX = WIDTH / 2;
-GLfloat lastY = HEIGHT / 2;
-GLfloat fov = 45.f;
+Camera camera(glm::vec3(0.f, 0.f, 3.f));
 bool keys[1024];
-// Delta time
-GLfloat deltaTime = 0.f; // Time between current frame and last frame
-GLfloat lastFrame = 0.f; // Time of last frame
+GLfloat lastX = ScreenWidth / 2;
+GLfloat lastY = ScreenHeight / 2;
+bool firstMouse = true;
+
+GLfloat deltaTime = 0.f;
+GLfloat lastFrame = 0.f;
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -42,9 +40,10 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(ScreenWidth, ScreenHeight, "OpenGL", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Set the required callback functions
@@ -61,7 +60,7 @@ int main()
 	glewInit();
 
 	// Define the viewport dimensions
-	glViewport(0, 0, WIDTH, HEIGHT);
+	glViewport(0, 0, ScreenWidth, ScreenHeight);
 
 	// Setup OpenGL options
 	glEnable(GL_DEPTH_TEST);
@@ -201,6 +200,9 @@ int main()
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Avtivate shader
+		ourShader.Use();
+
 		// Bind Texture using texture units
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -208,30 +210,20 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
-		
-		// Avtivate shader
-		ourShader.Use();
 
 		// Camera/view transformation
 		glm::mat4 view;
-		GLfloat radius = 10.f;
-		GLfloat camX = sin(glfwGetTime()) * radius;
-		GLfloat camZ = cos(glfwGetTime()) * radius;
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-		// Projections
+		view = camera.GetViewMatrix();
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(fov), (float)width / (float)height, 0.1f, 100.f);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 1000.f);
 		// Get their uniform location
 		GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
 		GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
 		GLint projLoc = glGetUniformLocation(ourShader.Program, "projection");
 		// Pass the matrices to the shaders
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		// Note: currently we set the projection matrix each frame, but since the projection matrix rarely change it's often best practice to set it outside the main loop only once.
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		// Draw container
 		glBindVertexArray(VAO);
 		for (GLuint i = 0; i < 10; i++)
 		{
@@ -256,6 +248,19 @@ int main()
 	return 0;
 }
 
+void do_movement()
+{
+	// Camera controls
+	if (keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -269,21 +274,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-void do_movement()
-{
-	// Camera controls
-	GLfloat cameraSpeed = 5.f * deltaTime;
-	if (keys[GLFW_KEY_W])
-		cameraPos += cameraSpeed * cameraFront;
-	if (keys[GLFW_KEY_S])
-		cameraPos -= cameraSpeed * cameraFront;
-	if (keys[GLFW_KEY_A])
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (keys[GLFW_KEY_D])
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-}
-
-bool firstMouse = true;
 void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 {
 	if (firstMouse)
@@ -298,31 +288,10 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	GLfloat sensitivity = 0.05;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	yaw += xoffset;
-	pitch += yoffset;
-
-	if (pitch > 89.f)
-		pitch = 89.f;
-	if (pitch < -89.f)
-		pitch = -89.f;
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front);
+	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
 {
-	if (fov >= 1.f && fov <= 45.f)
-		fov -= yoffset;
-	if (fov < 1.f)
-		fov = 1.f;
-	if (fov > 45.f)
-		fov = 45.f;
+	camera.ProcessMouseScroll(yoffset);
 }

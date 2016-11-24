@@ -95,6 +95,9 @@
     <ClInclude Include="SOIL2\stbi_pvr_c.h">
       <Filter>SOIL2</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\images\image1.jpg">
