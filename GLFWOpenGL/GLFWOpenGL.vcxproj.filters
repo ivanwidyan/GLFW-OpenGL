@@ -111,11 +111,13 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\core.vert">
+    <None Include="res\shaders\lighting.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="res\shaders\core.frag">
+    <None Include="res\shaders\lighting.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="res\shaders\lamp.frag" />
+    <None Include="res\shaders\lamp.vert" />
   </ItemGroup>
 </Project>
