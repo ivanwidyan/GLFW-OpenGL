@@ -163,14 +163,19 @@ int main()
 
 		// Use corresponding shader when setting  uniforms/drawing objects
 		lightingShader.Use();
-		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
-		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");
+		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f);
 		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
+		// Set lights properties
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 1.f, 1.f, 1.f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 1.f, 1.f, 1.f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 1.f, 1.f, 1.f);
+		// Set material properties
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "material.ambient"), 0.f, 0.1f, 0.6f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "material.diffuse"), 0.f, 0.50980392f, 0.50980392f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "material.specular"), 0.50196078f, 0.50196078f, 0.50196078f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 32.f);
 
 		// Camera/view transformation
 		glm::mat4 view;
