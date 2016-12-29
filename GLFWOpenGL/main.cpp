@@ -209,21 +209,22 @@ int main()
 		do_movement();
 
 		// Clear the colorbuffer
-		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Use corresponding shader when setting  uniforms/drawing objects
 		lightingShader.Use();
-		//GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
-		GLint lightDirLoc = glGetUniformLocation(lightingShader.Program, "light.direction");
+		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-		//glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-		glUniform3f(lightDirLoc, -0.2f, -1.f, -0.3f);
+		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
 		// Set lights properties
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 1.f, 1.f, 1.f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "light.constant"), 1.f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "light.linear"), 0.09f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "light.quadratic"), 0.032f);
 		// Set material properties
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 32.f);
 
@@ -269,7 +270,7 @@ int main()
 		glBindVertexArray(0);
 
 		// Also draw the lamp object, again binding the appropriate shader
-		/*lampShader.Use();
+		lampShader.Use();
 		// Get location objects for the matrices on the lamp shader (these could be different on a different shader)
 		modelLoc = glGetUniformLocation(lampShader.Program, "model");
 		viewLoc = glGetUniformLocation(lampShader.Program, "view");
@@ -284,7 +285,7 @@ int main()
 		// Draw the light object (using light's vertex attributes)
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);*/
+		glBindVertexArray(0);
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
